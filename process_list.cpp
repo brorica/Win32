@@ -29,7 +29,7 @@ int main()
 	printf("Process List: \n");
 
 	while (Process32Next(hSnapShot, &pe))
-	{ // 프로세스 검색
+	{ // process searching
 		HANDLE k = OpenProcess(PROCESS_ALL_ACCESS, TRUE, pe.th32ProcessID);
 
 		if (k != 0)
