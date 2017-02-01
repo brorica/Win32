@@ -9,10 +9,8 @@ DWORD ReadProcess(HANDLE process_handle, MEMORY_BASIC_INFORMATION MBI, DWORD Val
 	{
 		for (unsigned int i=0; i < (DWORD)MBI.RegionSize; i++)
 		{
-			if (*(DWORD*)((char*)readArray + i) == Value)
-			{		
+			if (*(DWORD*)((char*)readArray + i) == Value)	
 				printf("0x%x\t%d\n", ((unsigned int)MBI.BaseAddress+i), *(DWORD*)((char*)readArray + i));
-			}
 		}
 	}
 	delete readArray;
@@ -24,29 +22,23 @@ DWORD WriteProcess(HANDLE process_handle, MEMORY_BASIC_INFORMATION MBI, DWORD ad
 {
 	BYTE *readArray;   // 메모리에서 읽어낸 것
 	readArray = new BYTE[MBI.RegionSize]; // 4byte
-	DWORD SetValue = 1234;
+	
+	DWORD SetValue = 10;
+	DWORD original_Value=0;
+	DWORD NewProtect_Value= PAGE_EXECUTE_READWRITE;
 	//printf("Set Value : ");
 	//scanf_s("%d", &SetValue);
 	if (ReadProcessMemory(process_handle, MBI.BaseAddress, readArray, MBI.RegionSize, NULL) != 0)
 	{
 		for (unsigned int i = 0; i < (DWORD)MBI.RegionSize; i++)
 		{
-			if ((unsigned int)MBI.BaseAddress == addr && *(DWORD*)((char*)readArray + i) == Value)
+			if ( (DWORD)MBI.BaseAddress + i == addr )
 			{
-			/*
-				DWORD VirtualAddr = 0;
-				if((VirtualAddr = (DWORD)VirtualAllocEx(process_handle, NULL, sizeof(DWORD), MEM_COMMIT, PAGE_READWRITE)) == 0)
-					printf("failed!\n");
-			 */
-
-				if (WriteProcessMemory(process_handle, (LPVOID)addr, (LPCVOID)&SetValue, sizeof(DWORD), NULL) == 0)
-					printf("WriteProcessMemory failed!\n");
-				//printf("0x%x\t%d\n", (unsigned int)MBI.BaseAddress, *(DWORD*)((char*)readArray + i));
-				/*
-				if (WriteProcessMemory(process_handle, MBI.BaseAddress, (LPCVOID)SetValue, sizeof(DWORD), NULL) == 0)
-					printf("failed!\n");
-				*/
-				//VirtualFree(process_handle, sizeof(DWORD), MEM_DECOMMIT);
+				VirtualProtectEx(process_handle, MBI.BaseAddress,MBI.RegionSize, NewProtect_Value, &original_Value);
+				WriteProcessMemory(process_handle, (LPVOID)addr, (LPCVOID)&SetValue, sizeof(DWORD), NULL);
+				NewProtect_Value = original_Value;
+				VirtualProtectEx(process_handle, MBI.BaseAddress,MBI.RegionSize,  original_Value, &NewProtect_Value);
+				
 				delete readArray;
 				return 0; // 찾으면 read process 탈출
 			}

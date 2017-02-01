@@ -2,7 +2,6 @@
 #pragma comment(lib, "user32.lib")
 
 #define ARRAY_SIZE 100     // 배열 크기
-
 void hardinfo(HANDLE process_handle)
 {
 	MEMORY_BASIC_INFORMATION MBI; // Protect member
@@ -15,8 +14,10 @@ void hardinfo(HANDLE process_handle)
 
 	// Read Process
 	DWORD Value=0;
+	int TEST = 100;
 	printf("Find Value? : ");
 	scanf_s("%d", &Value);
+//	printf("0x%x\n\n", &TEST);
 	Minimum_Memory = (DWORD)siSysInfo.lpMinimumApplicationAddress;
 	do {
 		if (VirtualQueryEx(process_handle, (LPVOID)Minimum_Memory, &MBI, sizeof(MBI)) == sizeof(MBI))
@@ -29,7 +30,9 @@ void hardinfo(HANDLE process_handle)
 
 
 	// Write Process
+	
 	DWORD addr=0;
+	//printf("TEST : %d\n", TEST);
 	printf("chagne address : ");
 	scanf_s("%x", &addr);
 
@@ -42,6 +45,5 @@ void hardinfo(HANDLE process_handle)
 			Minimum_Memory = (DWORD)MBI.BaseAddress + (DWORD)MBI.RegionSize; // 현재까지의 페이지 크기를 할당
 		}
 	} while (Minimum_Memory < (DWORD)siSysInfo.lpMaximumApplicationAddress); // 마지막 페이지면 반복문 탈출
-
-
+	//printf("TEST : %d\n", TEST);
 }
