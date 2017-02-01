@@ -38,4 +38,5 @@ int main()
 	ProcessList(hSnapShot, pe);
 	printf("\n\n\n\n");
 	CloseHandle(hSnapShot); // process search end
+	return 0;
 }
