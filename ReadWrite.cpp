@@ -1,49 +1,77 @@
 #include "header.h"
+#include <iostream>
 #include <Psapi.h>
 
-DWORD ReadProcess(HANDLE process_handle, MEMORY_BASIC_INFORMATION MBI, DWORD Value)
+DWORD ReadProcess(HANDLE process_handle, MEMORY_BASIC_INFORMATION MBI, DWORD Value, vector<size_t> &vector_addr)
 {
-	BYTE *readArray;   // 메모리에서 읽어낸 것
-	readArray = new BYTE[MBI.RegionSize]; // 4byte
+	int v = 0;
+	auto readArray = new BYTE[MBI.RegionSize];
 	if (ReadProcessMemory(process_handle, MBI.BaseAddress, readArray, MBI.RegionSize, NULL) != 0)
 	{
-		for (unsigned int i=0; i < (DWORD)MBI.RegionSize; i++)
+		for (size_t i=0; i < MBI.RegionSize; ++i)
 		{
-			if (*(DWORD*)((char*)readArray + i) == Value)	
-				printf("0x%x\t%d\n", ((unsigned int)MBI.BaseAddress+i), *(DWORD*)((char*)readArray + i));
+			if (readArray[i] == Value)
+			{
+				vector_addr.push_back((size_t)MBI.BaseAddress + i);
+			//	printf("0x%p\t%d\n", vector_addr[v++], readArray[i]);
+			}
 		}
 	}
-	delete readArray;
+	delete[] readArray;
+	return 0;
+}
+
+DWORD second_ReadProcess(HANDLE process_handle, MEMORY_BASIC_INFORMATION MBI, DWORD Value, vector<size_t> &vector_addr)
+{
+	size_t size = vector_addr.size();
+	size_t i = 0;
+	auto readArray = new BYTE[MBI.RegionSize];
+	if (ReadProcessMemory(process_handle, MBI.BaseAddress, readArray, MBI.RegionSize, NULL) != 0)
+	{
+		for (auto it_addr = vector_addr.begin(); it_addr != vector_addr.end(); it_addr++)
+		{
+			// bigger than base address
+			if (((size_t)MBI.BaseAddress <= *it_addr))
+			{
+				// bigger than page size
+				if (*it_addr >= ((size_t)MBI.BaseAddress + MBI.RegionSize))
+					continue;
+				else
+					if (readArray[*it_addr - (size_t)MBI.BaseAddress] == Value)
+						printf("0x%p\t%d\n", *it_addr, readArray[*it_addr- (size_t)MBI.BaseAddress]);
+					
+			}
+			// lower than base address
+			else
+				continue;
+		}
+	}
+	delete[] readArray;
 	return 0;
 }
 
 
-DWORD WriteProcess(HANDLE process_handle, MEMORY_BASIC_INFORMATION MBI, DWORD addr, DWORD Value)
+DWORD WriteProcess(HANDLE process_handle, MEMORY_BASIC_INFORMATION MBI, size_t addr, DWORD Value, DWORD SetValue)
 {
-	BYTE *readArray;   // 메모리에서 읽어낸 것
-	readArray = new BYTE[MBI.RegionSize]; // 4byte
+	auto readArray = new BYTE[MBI.RegionSize]; // 4byte
 	
-	DWORD SetValue = 10;
-	DWORD original_Value=0;
-	DWORD NewProtect_Value= PAGE_EXECUTE_READWRITE;
-	//printf("Set Value : ");
-	//scanf_s("%d", &SetValue);
-	if (ReadProcessMemory(process_handle, MBI.BaseAddress, readArray, MBI.RegionSize, NULL) != 0)
+	DWORD original_Protect=0;
+	DWORD NewProtect_Protect = PAGE_EXECUTE_READWRITE;
+	if (ReadProcessMemory(process_handle, MBI.BaseAddress, readArray, MBI.RegionSize, nullptr) != 0)
 	{
-		for (unsigned int i = 0; i < (DWORD)MBI.RegionSize; i++)
+		for (size_t i = 0; i < MBI.RegionSize; ++i)
 		{
-			if ( (DWORD)MBI.BaseAddress + i == addr )
+			if ((size_t)MBI.BaseAddress+i == addr )
 			{
-				VirtualProtectEx(process_handle, MBI.BaseAddress,MBI.RegionSize, NewProtect_Value, &original_Value);
-				WriteProcessMemory(process_handle, (LPVOID)addr, (LPCVOID)&SetValue, sizeof(DWORD), NULL);
-				NewProtect_Value = original_Value;
-				VirtualProtectEx(process_handle, MBI.BaseAddress,MBI.RegionSize,  original_Value, &NewProtect_Value);
-				
-				delete readArray;
-				return 0; // 찾으면 read process 탈출
+				VirtualProtectEx(process_handle, MBI.BaseAddress,MBI.RegionSize, NewProtect_Protect, &original_Protect);
+				WriteProcessMemory(process_handle, (LPVOID)addr, (LPCVOID)&SetValue, sizeof(DWORD), nullptr);
+				NewProtect_Protect = original_Protect;
+				VirtualProtectEx(process_handle, MBI.BaseAddress,MBI.RegionSize, original_Protect, &NewProtect_Protect);		
+				delete[] readArray;
+				return ((DWORD)MBI.BaseAddress + i);
 			}
 		}
 	}
-	delete readArray;
+	delete[] readArray;
 	return 0;
 }

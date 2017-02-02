@@ -7,7 +7,6 @@ int ProcessList(HANDLE hSnapShot, PROCESSENTRY32 pe);
 int ProcessList(HANDLE hSnapShot, PROCESSENTRY32 pe)
 { 
 	DWORD PID;
-	// first, show process list
 	while (Process32Next(hSnapShot, &pe))
 	{
 		HANDLE k = OpenProcess(PROCESS_ALL_ACCESS, TRUE, pe.th32ProcessID);
@@ -27,16 +26,14 @@ int main()
 {
 	PROCESSENTRY32 pe;
 	DWORD pID = GetCurrentProcessId();
-	//ready to extract process name
 	HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, pID);
 
 	pe.dwSize = sizeof(PROCESSENTRY32);
-	Process32First(hSnapShot, &pe); // process search start
+	Process32First(hSnapShot, &pe);
 
-	// process searching
 	printf("Process List: \n");
 	ProcessList(hSnapShot, pe);
-	printf("\n\n\n\n");
-	CloseHandle(hSnapShot); // process search end
+	printf("\n");
+	CloseHandle(hSnapShot);
 	return 0;
 }
