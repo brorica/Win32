@@ -4,7 +4,6 @@
 
 DWORD ReadProcess(HANDLE process_handle, MEMORY_BASIC_INFORMATION MBI, DWORD Value, list<size_t> &addressList)
 {
-	int v = 0;
 	auto readArray = new BYTE[MBI.RegionSize];
 	if (ReadProcessMemory(process_handle, MBI.BaseAddress, readArray, MBI.RegionSize, NULL) != 0)
 	{
@@ -32,7 +31,7 @@ DWORD NextReadProcess(HANDLE process_handle, MEMORY_BASIC_INFORMATION MBI, DWORD
 			{ // bigger than total page size		
 				if (*it_addr <= ((size_t)MBI.BaseAddress + MBI.RegionSize))
 					if (readArray[*it_addr - (size_t)MBI.BaseAddress] == Value)
-							printf("0x%p\t%d\n", *it_addr, readArray[*it_addr- (size_t)MBI.BaseAddress]);					
+							printf("0x%p\t%d\n",*it_addr, readArray[*it_addr- (size_t)MBI.BaseAddress]);					
 			}
 			// lower than base address
 		}

@@ -17,7 +17,7 @@ int ProcessList(HANDLE hSnapShot, PROCESSENTRY32 pe)
 	printf("\nProcess ID : ");
 	scanf_s("%d", &PID);
 	HANDLE process_handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, PID);
-	hardinfo(process_handle);
+	getProcessInfo(process_handle);
 
 	return 0;
 }
